@@ -8,6 +8,65 @@ import random
 from discoverse.envs import SimulatorBase
 from discoverse.utils.base_config import BaseConfig
 
+
+##########################################################################
+
+output_dir = 'output_images'
+
+def generate_camera_lookat_pairs(cam_pos_range, lookat_pos_ranges, num_samples=300):
+    """
+    生成随机相机位置 (cam-pos) 和对应的观察目标位置 (lookat-pos) 组合。
+
+    :param cam_pos_range: 一个字典，定义相机位置的 x, y, z 范围，例如：
+                         {"x": (x_min, x_max), "y": (y_min, y_max), "z": (z_min, z_max)}
+    :param lookat_pos_ranges: 一个列表，每个元素是字典，定义 lookat 位置的范围，例如：
+                              [{"x": (x_min, x_max), "y": (y_min, y_max), "z": (z_min, z_max)}, {...}, ...]
+    :param num_samples: 生成的 (cam-pos, lookat-pos) 组合数量
+    :return: 一个包含 (cam-pos, lookat-pos) 组合的列表
+    """
+    pairs = []
+
+    for _ in range(num_samples):
+        # 随机生成相机位置 cam-pos
+        cam_x = np.random.uniform(*cam_pos_range["x"])
+        cam_y = np.random.uniform(*cam_pos_range["y"])
+        cam_z = np.random.uniform(*cam_pos_range["z"])
+        cam_pos = np.array([cam_x, cam_y, cam_z])
+
+        # 随机选择一个 lookat 范围
+        lookat_range = random.choice(lookat_pos_ranges)
+
+        # 从选择的 lookat 范围中采样 lookat 位置
+        lookat_x = np.random.uniform(*lookat_range["x"])
+        lookat_y = np.random.uniform(*lookat_range["y"])
+        lookat_z = np.random.uniform(*lookat_range["z"])
+        lookat_pos = np.array([lookat_x, lookat_y, lookat_z])
+
+        # 组合成一对
+        pairs.append((cam_pos, lookat_pos))
+
+    return pairs
+
+# 相机位置范围  0.1 0.5 0.947
+cam_pos_range = {
+    "x": (-0.7, 0.6),
+    "y": (0.2, 0.7),
+    "z": (0.6, 1.4)
+}
+
+# 多个 lookat 位置范围  book:-0.4,0.98,0.947  ||||  arm:0.3 0.92 0.71  |||||  cabinet: 0.915 0.58 0.01
+lookat_pos_ranges = [
+    {"x": (-0.3, -0.5), "y": (0.98, 0.99), "z": (0.907, 1.0)},
+    {"x": (0.3, 0.35), "y": (0.92, 0.93), "z": (0.76, 0.82)},
+    {"x": (0.915, 0.916), "y": (0.38, 0.78), "z": (0.45, 0.95)}
+]
+
+# 生成 300 组 (cam-pos, lookat-pos)
+pos_pairs = generate_camera_lookat_pairs(cam_pos_range, lookat_pos_ranges, num_samples=300)
+
+
+##########################################################################
+
 class DummyRobotConfig(BaseConfig):
     y_up = False
     robot_name = "dummy_robot"
@@ -162,6 +221,7 @@ if __name__ == "__main__":
 
     cfg.use_gaussian_renderer = True
     cfg.gs_model_dict["background"] = "scene/Air11F/air_11f_3.ply"
+    #cfg.gs_model_dict["background"] = "scene/Air12F/air_12f.ply"
 
     robot = DummyRobot(cfg)
     robot.cam_id = dummy_robot_cam_id
@@ -202,10 +262,17 @@ if __name__ == "__main__":
 
     robot.printHelp()
 
-    img=robot.get_camera_image_direct("eye_side",lookat_position=[0,0,1])
+    img=robot.get_camera_image_direct("eye_side",changed_xyz=[0.5,0.5,0.947],lookat_position=[2,0,0])
     plt.imshow(img)
     plt.axis("off")
     plt.show()
+
+    # for i in range(300):
+    #     img = robot.get_camera_image_direct(camera_name="eye_side",changed_xyz=pos_pairs[i][0],lookat_position=pos_pairs[i][1])
+    #     print(f"Pair {i+1}: Camera Pos {pos_pairs[i][0]}, Lookat Pos {pos_pairs[i][1]}")
+    #     img_filename = f"{output_dir}/camera_image_X{i:.1f}.png"
+    #     plt.imsave(img_filename, img)
+    #     print(f"Captured Image {i} from Position: {pos_pairs[i][0]} look at {pos_pairs[i][1]}" ) 
 
     while robot.running:
         obs, _, _, _, _ = robot.step(action)

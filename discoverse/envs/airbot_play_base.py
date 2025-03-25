@@ -323,14 +323,14 @@ if __name__ == "__main__":
 
 
 ###################################################################
-    # 获取自定义相机的图片
-    img = exec_node.get_camera_image("custom_camera")
+    # # 获取自定义相机的图片
+    # img = exec_node.get_camera_image("custom_camera")
 
-    ######################
-    # 显示图片
-    plt.imshow(img)
-    plt.axis("off")
-    plt.show()
+    # ######################
+    # # 显示图片
+    # plt.imshow(img)
+    # plt.axis("off")
+    # plt.show()
 
     obs = exec_node.reset()
     action = exec_node.init_joint_pose[:exec_node.nj]

@@ -15,7 +15,7 @@
   </asset>
 
   <worldbody>
-    <camera name="eye_side" fovy="72.02" pos="0.1 0.5 0.947" xyaxes="0.415 -0.910 0.000 0.233 0.106 0.967"/>
+    <camera name="eye_side" fovy="72.02" pos="0.5 0.5 0.947" xyaxes="0.415 -0.910 0.000 0.233 0.106 0.967"/>
     <light castshadow="false" directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3' pos='-1 -1 1' dir='1 1 -1'/>
     <light directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3' pos='0 0 1' dir='-1 1 -1'/>
     <light castshadow="false" directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3' pos='0 1 1' dir='0 -1 -1'/>
