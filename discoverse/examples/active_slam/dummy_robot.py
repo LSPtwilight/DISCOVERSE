@@ -222,7 +222,7 @@ if __name__ == "__main__":
     cfg.use_gaussian_renderer = True
     cfg.gs_model_dict["background"] = "scene/Air11F/air_11f_3.ply"
     #cfg.gs_model_dict["background"] = "scene/Air12F/air_12f.ply"
-
+    #cfg.gs_model_dict["background"] = "scene/Air12F/air_12f.ply"
     robot = DummyRobot(cfg)
     robot.cam_id = dummy_robot_cam_id
 
