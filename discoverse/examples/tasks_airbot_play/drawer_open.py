@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 import random
-
+import json
 import os
 import shutil
 import argparse
@@ -222,12 +222,37 @@ if __name__ == "__main__":
                     # plt.axis("off")
                     # plt.show()
 
+
+                  # 初始化相机信息列表
+                    cameras_info = []
+
                     for i in range(300):
-                        img = sim_node.get_camera_image_direct(camera_name="eye_side",changed_xyz=pos_pairs[i][0],lookat_position=pos_pairs[i][1])
-                        print(f"Pair {i+1}: Camera Pos {pos_pairs[i][0]}, Lookat Pos {pos_pairs[i][1]}")
-                        img_filename = f"{output_dir}/camera_image_X{i:.1f}.png"
+                        # 获取相机图像和参数
+                        img, cam_pos, quat_xyzw = sim_node.get_camera_image_direct(
+                            camera_name="eye_side",
+                            changed_xyz=pos_pairs[i][0],
+                            lookat_position=pos_pairs[i][1]
+                        )
+                        
+                        # 保存图片
+                        img_filename = f"{output_dir}/input/image{i}.png"  # 修改为image{i}格式
                         plt.imsave(img_filename, img)
-                        print(f"Captured Image {i} from Position: {pos_pairs[i][0]} look at {pos_pairs[i][1]}" )                  
+                        print(f"Captured Image {i} from Position: {pos_pairs[i][0]} look at {pos_pairs[i][1]}")
+                        
+                        # 收集相机信息
+                        camera_data = {
+                            "cam_pos": cam_pos.tolist() if hasattr(cam_pos, 'tolist') else list(cam_pos),
+                            "image_name": f"image{i}.png",
+                            "quat_xyzw": quat_xyzw.tolist() if hasattr(quat_xyzw, 'tolist') else list(quat_xyzw)
+                        }
+                        cameras_info.append(camera_data)
+
+                    # 保存JSON文件
+                    json_filename = os.path.join(output_dir, "mujoco_cam_infos.json")  # 使用你提供的JSON文件名
+                    with open(json_filename, 'w') as f:
+                        json.dump({"cameras": cameras_info}, f, indent=4)
+
+                    print(f"Saved camera info to {json_filename}")               
                     break
             else:
                 print(f"{data_idx} Failed")

@@ -4,7 +4,7 @@ from scipy.spatial.transform import Rotation
 import mujoco.viewer
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
-
+import json
 import os
 import shutil
 import argparse
@@ -51,7 +51,7 @@ def get_random_camera_positions(arm_pose_center, num_samples=80, min_radius=0.15
     return camera_positions
 
 arm_pose_center = np.array([-0.34, 0.90 ,0.7195])
-random_camera_positions = get_random_camera_positions(arm_pose_center, num_samples=80)
+random_camera_positions = get_random_camera_positions(arm_pose_center, num_samples=100)
 
 ##########################################################################################################
 
@@ -250,22 +250,36 @@ if __name__ == "__main__":
                 ori_cam_pos=np.array([-0.924,0.617,1.42])
                 print("\r{:4}/{:4} ".format(data_idx, data_set_size), end="")
                 if data_idx >= data_set_size:
-                    for i in np.arange(0,0.9,0.05):
-                        for j in np.arange(0,0.6,0.04):
-                            cam_pos = ori_cam_pos + np.array([i, 0, -j])
-                            img = sim_node.get_move_camera_image(camera_name="testcamera", changed_xyz=cam_pos,lookat_object_name="GGbond")
-                            img_filename = f"{output_dir}/camera_image_X{i:.2f}_Y{j:.2f}.png"
-                            print("i=",i," j=",j)
+
+                    if data_idx >= data_set_size:
+                        cameras_info = []
+                        
+                        for idx, cam_pos in enumerate(random_camera_positions):
+                            img, cam_pos, quat_xyzw = sim_node.get_camera_image_direct(
+                                camera_name="testcamera", 
+                                changed_xyz=cam_pos,
+                                lookat_position=[-0.38, 0.90, 0.7845]
+                            )
+                            
+                            # 保存图片
+                            img_filename = f"{output_dir}/input/image{idx}.png"  # 统一使用image{i}格式
                             plt.imsave(img_filename, img)
-
-                    # for idx, cam_pos in enumerate(random_camera_positions):
-                    #     img = sim_node.get_move_camera_image(camera_name="testcamera", changed_xyz=cam_pos,lookat_object_name="GGbond")
-                    #     img_filename = f"{output_dir}/camera_image_X{idx+1:.2f}.png"
-                    #     plt.imsave(img_filename, img)
-                    #     print(f"Captured Image {idx+1} from Position: {cam_pos}")
-                    
-                    print(test_count)
-
+                            print(f"Captured Image {idx} from Position: {cam_pos}")
+                            
+                            # 收集相机信息
+                            camera_data = {
+                                "cam_pos": cam_pos.tolist() if hasattr(cam_pos, 'tolist') else list(cam_pos),
+                                "image_name": f"image{idx}.png",
+                                "quat_xyzw": quat_xyzw.tolist() if hasattr(quat_xyzw, 'tolist') else list(quat_xyzw)
+                            }
+                            cameras_info.append(camera_data)
+                        
+                        # 保存JSON文件
+                    json_filename = os.path.join(output_dir, "mujoco_cam_infos.json")
+                    with open(json_filename, 'w') as f:
+                        json.dump({"cameras": cameras_info}, f, indent=4)
+                        
+                    print(f"Saved camera info to {json_filename}")
                     break
             else:
                 print(f"{data_idx} Failed")

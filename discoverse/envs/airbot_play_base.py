@@ -253,7 +253,7 @@ class AirbotPlayBase(SimulatorBase):
             image = self.gs_renderer.render(render_depth=False)
             print(f"[Gaussian Renderer] Captured image from camera '{camera_name}' with resolution ({width}x{height})")
 
-            return image
+            return image,new_camera_position,quat_xyzw
 
     
     def close(self):
