@@ -220,8 +220,10 @@ if __name__ == "__main__":
     cfg.mjcf_file_path = "mjcf/dummy_robot.xml"
 
     cfg.use_gaussian_renderer = True
-    cfg.gs_model_dict["background"] = "scene/Air11F/air_11f_3.ply"
-    #cfg.gs_model_dict["background"] = "scene/Air12F/air_12f.ply"
+
+    ######  usable scenes
+    #cfg.gs_model_dict["background"] = "scene/Air11F/air_11f_3.ply"
+    cfg.gs_model_dict["background"] = "scene/guanchou_road/point_cloud.ply"
     #cfg.gs_model_dict["background"] = "scene/Air12F/air_12f.ply"
     robot = DummyRobot(cfg)
     robot.cam_id = dummy_robot_cam_id

@@ -33,6 +33,10 @@ def get_camera_quaternion(camera_position, object_position):
     quaternion_xyzw = rotation_matrix.as_quat()
 
     return quaternion_xyzw
+#################################################################################
+#################################################################################
+
+
 
 class AirbotPlayCfg(BaseConfig):
     mjcf_file_path = "mjcf/airbot_play_floor.xml"

@@ -21,30 +21,33 @@ from discoverse.task_base import AirbotPlayTaskBase, recoder_airbot_play, copypy
 output_dir = 'output_images'
 test_count=0
 
-def get_random_camera_positions(arm_pose_center, num_samples=80, min_radius=0.15, max_radius=0.22):
+def get_random_camera_positions(arm_pose_center, num_samples=80, min_radius=0.15, max_radius=0.22, min_z=0.3):
+    """
+    均匀分布相机在上半球（避免靠近赤道）
     
+    :param arm_pose_center: np.array([x, y, z])
+    :param num_samples: 要生成的相机数
+    :param min_radius: 最小半径（距离中心）
+    :param max_radius: 最大半径
+    :param min_z: 单位球面 z 的下限，用于避免相机太低（z ∈ [min_z, 1]）
+    :return: List[np.array([x, y, z])]
+    """
     camera_positions = []
-    
-    for _ in range(num_samples):
-        # 随机相机到机械臂的距离
-        r = np.random.uniform(min_radius, max_radius)
-        
-        # 限制仰角 theta 在 [0, π/2]，确保相机在上半球
-        theta = np.random.uniform(0, np.pi / 3)
-        
-        # 采样方位角 phi（0 到 2π，完整的圆周）
-        phi = np.random.uniform(0, 2 * np.pi)
-        
-        # 计算相机位置 (x, y, z)
-        x = r * np.cos(phi) * np.sin(theta)
-        y = r * np.sin(phi) * np.sin(theta)
-        z = r * np.cos(theta)
 
-        # 确保相机在 `arm_pose` 之上（即 z 轴不低于机械臂）
-        if arm_pose_center[2] + z < arm_pose_center[2]:
-            z = abs(z)  # 取正值，防止相机位置低于机械臂
-        
-        # 计算全局相机位置
+    for _ in range(num_samples):
+        # 均匀采样 z（控制采样范围在上半球的靠上区域）
+        z_unit = np.random.uniform(min_z, 1.0)
+        phi = np.random.uniform(0, 2 * np.pi)
+        r_unit = np.sqrt(1 - z_unit ** 2)
+
+        # 随机半径（控制相机远近）
+        radius = np.random.uniform(min_radius, max_radius)
+
+        # 转为笛卡尔坐标
+        x = radius * r_unit * np.cos(phi)
+        y = radius * r_unit * np.sin(phi)
+        z = radius * z_unit
+
         camera_pos = arm_pose_center + np.array([x, y, z])
         camera_positions.append(camera_pos)
 
@@ -260,6 +263,8 @@ if __name__ == "__main__":
                                 changed_xyz=cam_pos,
                                 lookat_position=[-0.38, 0.90, 0.7845]
                             )
+                            input_dir = os.path.join(output_dir, "input")
+                            os.makedirs(input_dir, exist_ok=True)  # 如果不存在就创建
                             
                             # 保存图片
                             img_filename = f"{output_dir}/input/image{idx}.png"  # 统一使用image{i}格式
